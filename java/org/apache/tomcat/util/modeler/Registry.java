@@ -150,6 +150,7 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
      *
      * @since 1.1
      */
+    //NOTE 根据key获取registry,若该key对应的registry不存在则生成,并进行缓存,若存在则直接返回,guard是一个安全校验码,guard与创建时所使用guard一致才会返回registry
     public static synchronized Registry getRegistry(Object key, Object guard) {
         Registry localRegistry;
         if( perLoaderRegistries!=null ) {
@@ -558,6 +559,7 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
 
     /** Find or load metadata. 
      */ 
+    //NOTE 找到beanClass,type所对应ManagedBean信息存储类
     public ManagedBean findManagedBean(Object bean, Class<?> beanClass,
             String type) throws Exception {
         if( bean!=null && beanClass==null ) {
@@ -583,12 +585,14 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
         }
         
         // Still not found - use introspection
+        //NOTE 之前未加载过,并且在包目录下未找到mbeans-descriptors.xml文件，则通过MbeansDescriptorsIntrospectionSource生成ManagedBean
         if( managed==null ) {
             if( log.isDebugEnabled() ) {
                 log.debug( "Introspecting ");
             }
 
             // introspection
+            //NOTE 通过MbeansDescriptorsIntrospectionSource创建ManagedBean,设置att(get,set),method
             loadDescriptors("MbeansDescriptorsIntrospectionSource",
                     beanClass, type);
 
@@ -711,6 +715,7 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
      * @param type
      * @throws Exception
      */ 
+    //NOTE 注册component mbean
     public void registerComponent(Object bean, ObjectName oname, String type)
            throws Exception
     {
@@ -728,9 +733,12 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
                 type=bean.getClass().getName();
             }
 
+            //NOTE 找到所需注册对象所对应ManagedBean
             ManagedBean managed = findManagedBean(bean.getClass(), type);
 
             // The real mbean is created and registered
+            //NOTE 使用ManagedBean中的信息生成DynamicMBean
+            //TODO 需详细阅读
             DynamicMBean mbean = managed.createMBean(bean);
 
             if(  getMBeanServer().isRegistered( oname )) {
@@ -754,6 +762,9 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
      */
     //NOTE 根据packageName下的mbeans-descriptors.ser或mbeans-descriptors.xml,
     //创建该包下的MBean,注册到MBeanServer，并以name,className为key缓存到descriptors,descriptorsByClass
+    //使用类org.apache.tomcat.util.modeler.modules.MbeansDescriptorsDigesterSource进行Mbean的解析加载
+    //MBean信息仅封装在代理类org.apache.tomcat.util.modeler.ManagedBean中,并不注册到MBeanServer
+    //包所对应URL亦封装在searchedPaths中
     public void loadDescriptors( String packageName, ClassLoader classLoader  ) {
         String res=packageName.replace( '.', '/');
 
@@ -809,6 +820,7 @@ public class Registry implements RegistryMBean, MBeanRegistration  {
      * @param beanClass
      * @param type
      */
+    //NOTE 查找beanClass,type所对应ManagedBean定义,若类直接对应没有则按包查找查找其下的mbeans-descriptors.xml,若仍无则查父类包,若查到则进行加载
     private void findDescriptor(Class<?> beanClass, String type) {
         if( type==null ) {
             type=beanClass.getName();

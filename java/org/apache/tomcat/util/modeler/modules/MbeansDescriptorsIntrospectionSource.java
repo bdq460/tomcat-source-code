@@ -81,6 +81,7 @@ public class MbeansDescriptorsIntrospectionSource extends ModelerSource
     public void execute() throws Exception {
         if( registry==null ) registry=Registry.getRegistry(null, null);
         try {
+        	//NOTE 创建ManagedBean其name为type
             ManagedBean managed = createManagedBean(registry, null,
                     (Class<?>)source, type);
             if( managed==null ) return;
@@ -290,6 +291,7 @@ public class MbeansDescriptorsIntrospectionSource extends ModelerSource
      * @param type The bean type
      * @return ManagedBean The create MBean
      */
+    //NOTE 反射解析realClass中的属性与方法生成ManagedBean,name为type    
     public ManagedBean createManagedBean(Registry registry, String domain,
                                          Class<?> realClass, String type)
     {
@@ -307,6 +309,7 @@ public class MbeansDescriptorsIntrospectionSource extends ModelerSource
 
         methods = realClass.getMethods();
 
+        //NOTE 设置attMap,getAttMap,setAttMap,invokeAttMap
         initMethods(realClass, methods, attMap, getAttMap, setAttMap, invokeAttMap );
 
         try {

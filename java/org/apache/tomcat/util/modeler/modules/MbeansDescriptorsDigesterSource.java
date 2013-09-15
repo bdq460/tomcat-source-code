@@ -42,13 +42,23 @@ public class MbeansDescriptorsDigesterSource extends ModelerSource
     List<ObjectName> mbeans = new ArrayList<ObjectName>();
     protected static volatile Digester digester = null;
     
+    //NOTE 解析出的MBean信息放入信息定义类org.apache.tomcat.util.modeler.ManagedBean
+    //NOTE 解析出的MBean的attribute,operation,notification均有对应的信息定义类,并组装到对应的ManagedBean
     protected static Digester createDigester() {
 
         Digester digester = new Digester();
+        //NOTE namespaceAware表示是否区分名空间,若设置为true则会按照名空间区分同名元素,如 <ns1:a/>与<ns2:a/>表示不同元素
+        //NOTE 另外要说明的是digester.setRuleNamespaceURI(ruleNamespaceURI),这个方法表示在之后定义的rule均为遇到该名空间所定义元素时的动作
+        //Eg:
+        //	digester.setRuleNamespaceURI("ns1")
+        //  digester.addObjectCreate("person",cn.dololo.Person); 定义遇到<ns1:person/>元素时创建对象Person
         digester.setNamespaceAware(false);
+        //NOTE 是否使用dtd对文件进行校验
         digester.setValidating(false);
         URL url = Registry.getRegistry(null, null).getClass().getResource
             ("/org/apache/tomcat/util/modeler/mbeans-descriptors.dtd");
+        //NOTE register表示在publicid所对应dtd文件时才用url所对应本地文件进行解析,不需从网络下载,加快处理速度
+        //NOTE 由于上述validating设置为false,因此该register动作其实是无效的,不会对xml格式进行校验
         digester.register
             ("-//Apache Software Foundation//DTD Model MBeans Configuration File",
                 url.toString());

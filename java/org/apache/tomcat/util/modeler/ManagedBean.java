@@ -44,7 +44,7 @@ import javax.management.ServiceNotFoundException;
  * @author Craig R. McClanahan
  * @version $Id: ManagedBean.java 1457749 2013-03-18 13:10:33Z markt $
  */
-
+//NOTE MBean信息代理
 public class ManagedBean implements java.io.Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -67,6 +67,7 @@ public class ManagedBean implements java.io.Serializable {
     private Map<String,OperationInfo> operations =
         new HashMap<String,OperationInfo>();
     
+    //NOTE 表示生成的MBean的类
     protected String className = BASE_MBEAN;
     //protected ConstructorInfo constructors[] = new ConstructorInfo[0];
     protected String description = null;
@@ -270,6 +271,8 @@ public class ManagedBean implements java.io.Serializable {
      *
      * @param notification The new notification descriptor
      */
+    //QUES 为何同步notifications,而attributes与operations的add操作不需同步
+    //QUES notifications为何不使用list而使用[]
     public void addNotification(NotificationInfo notification) {
 
         synchronized (notifications) {
@@ -339,6 +342,7 @@ public class ManagedBean implements java.io.Serializable {
      *  <code>ModelMBean</code> instance
      * @exception RuntimeOperationsException if a JMX runtime error occurs
      */
+    //NOTE 创建DynamicMBean,创建DynamicMBean的实现类BaseModelMBean
     public DynamicMBean createMBean(Object instance)
         throws InstanceNotFoundException,
         MBeanException, RuntimeOperationsException {
@@ -350,6 +354,8 @@ public class ManagedBean implements java.io.Serializable {
             // Skip introspection
             mbean = new BaseModelMBean();
         } else {
+        	//NOTE 创建MBean对应的DynamicBean
+        	//NOTE 优先使用系统类加载器加载类
             Class<?> clazz = null;
             Exception ex = null;
             try {
@@ -357,6 +363,7 @@ public class ManagedBean implements java.io.Serializable {
             } catch (Exception e) {
             }
           
+            //NOTE 若加载不到然后使用用户自定义类加载器进行类加载
             if( clazz==null ) {  
                 try {
                     ClassLoader cl= Thread.currentThread().getContextClassLoader();
@@ -373,7 +380,8 @@ public class ManagedBean implements java.io.Serializable {
             }
             try {
                 // Stupid - this will set the default minfo first....
-                mbean = (BaseModelMBean) clazz.newInstance();
+                //QUES Stupid在这里是啥意思？
+            	mbean = (BaseModelMBean) clazz.newInstance();
             } catch (RuntimeOperationsException e) {
                 throw e;
             } catch (Exception e) {
@@ -383,11 +391,13 @@ public class ManagedBean implements java.io.Serializable {
             }
         }
         
+        //NOTE ManagedBean委托给MBean
         mbean.setManagedBean(this);
         
         // Set the managed resource (if any)
         try {
             if (instance != null)
+            	//NOTE 设置资源
                 mbean.setManagedResource(instance, "ObjectReference");
         } catch (InstanceNotFoundException e) {
             throw e;

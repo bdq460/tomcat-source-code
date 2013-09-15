@@ -100,6 +100,9 @@ import org.apache.juli.logging.LogFactory;
  * @author Craig R. McClanahan
  * @author Costin Manolache
  */
+//NOTE DynamicMBean的实现类,用于注册到MbeanServer
+//NOTE getMBeanInfo用于获取MBean的描述信息
+//NOTE getAttribute(attName),setAttribute(attName),invoke用于获取调用MBean的相关信息
 public class BaseModelMBean implements DynamicMBean, MBeanRegistration, ModelMBeanNotificationBroadcaster {
     private static final Log log = LogFactory.getLog(BaseModelMBean.class);
 
